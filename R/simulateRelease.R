@@ -22,13 +22,18 @@ simulateRelease <- function(tau = 1, release.rate, n, num.obs.nonwhite, a, b, mu
   
   # for the case where judges release completely randomly without looking at
   # the psa score.
+  # if (haphazard) {
+  #   dt[, released := FALSE]
+  #   dt[sample(.N, floor(release.rate * .N)), released := TRUE]
+  #   return(dt)
+  # }
+  
+  # for the case where judges release completely randomly for the control group only
   if (haphazard) {
-    dt[, released := FALSE]
-    dt[sample(.N, floor(release.rate * .N)), released := TRUE]
-    return(dt)
+    dt[, obs_risk := true_risk + treated * noise * tau + (1 - treated) * (runif(.N) - true_risk)]
+  } else {
+    dt[, obs_risk := true_risk + treated * noise * tau + (1 - treated) * noise]    
   }
-
-  dt[, obs_risk := true_risk + treated * noise * tau + (1 - treated) * noise]
   dt[, released := ecdf(obs_risk)(obs_risk) <= release_rate, by="treated,tau"]
 
   return(dt)
